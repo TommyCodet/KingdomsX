@@ -13,7 +13,11 @@ public class Kingdom {
 
     private final Map<UUID, KingdomMember> members;
 
-    public Kingdom(UUID id, String name, UUID owner) {
+    public Kingdom(
+            UUID id,
+            String name,
+            UUID owner
+    ) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -38,5 +42,13 @@ public class Kingdom {
 
     public Map<UUID, KingdomMember> getMembers() {
         return members;
+    }
+
+    public KingdomMember getMember(UUID uuid) {
+        return members.get(uuid);
+    }
+
+    public boolean isMember(UUID uuid) {
+        return members.containsKey(uuid);
     }
 }
