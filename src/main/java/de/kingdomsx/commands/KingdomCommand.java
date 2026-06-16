@@ -26,8 +26,9 @@ public class KingdomCommand implements CommandExecutor {
             String[] args
     ) {
 
-        if (!(sender instanceof Player player))
+        if (!(sender instanceof Player player)) {
             return true;
+        }
 
         if (args.length == 0) {
 
@@ -36,7 +37,9 @@ public class KingdomCommand implements CommandExecutor {
             player.sendMessage("§e/k invite <player>");
             player.sendMessage("§e/k join");
             player.sendMessage("§e/k leave");
+            player.sendMessage("§e/k members");
             player.sendMessage("§e/k info");
+            player.sendMessage("§e/k disband");
 
             return true;
         }
@@ -44,7 +47,9 @@ public class KingdomCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("create")) {
 
             if (args.length < 2) {
-                player.sendMessage("§cUsage: /k create <name>");
+                player.sendMessage(
+                        "§cUsage: /k create <name>"
+                );
                 return true;
             }
 
@@ -69,8 +74,12 @@ public class KingdomCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("invite")) {
 
-            if (args.length < 2)
+            if (args.length < 2) {
+                player.sendMessage(
+                        "§cUsage: /k invite <player>"
+                );
                 return true;
+            }
 
             Kingdom kingdom =
                     ServiceRegistry
@@ -80,9 +89,11 @@ public class KingdomCommand implements CommandExecutor {
                             );
 
             if (kingdom == null) {
+
                 player.sendMessage(
                         "§cYou are not in a kingdom."
                 );
+
                 return true;
             }
 
@@ -90,9 +101,11 @@ public class KingdomCommand implements CommandExecutor {
                     Bukkit.getPlayer(args[1]);
 
             if (target == null) {
+
                 player.sendMessage(
                         "§cPlayer not found."
                 );
+
                 return true;
             }
 
@@ -102,7 +115,8 @@ public class KingdomCommand implements CommandExecutor {
             );
 
             target.sendMessage(
-                    "§eYou were invited."
+                    "§eYou were invited to §6"
+                            + kingdom.getName()
             );
 
             player.sendMessage(
@@ -137,8 +151,9 @@ public class KingdomCommand implements CommandExecutor {
                                     invite.getKingdomId()
                             );
 
-            if (kingdom == null)
+            if (kingdom == null) {
                 return true;
+            }
 
             ServiceRegistry
                     .getKingdomManager()
@@ -178,6 +193,39 @@ public class KingdomCommand implements CommandExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("members")) {
+
+            Kingdom kingdom =
+                    ServiceRegistry
+                            .getKingdomManager()
+                            .getKingdomByPlayer(
+                                    player.getUniqueId()
+                            );
+
+            if (kingdom == null) {
+
+                player.sendMessage(
+                        "§cNo kingdom."
+                );
+
+                return true;
+            }
+
+            player.sendMessage(
+                    "§6Members:"
+            );
+
+            kingdom.getMembers()
+                    .values()
+                    .forEach(member ->
+                            player.sendMessage(
+                                    "§e" +
+                                    member.getUniqueId()
+                            ));
+
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("info")) {
 
             Kingdom kingdom =
@@ -209,6 +257,26 @@ public class KingdomCommand implements CommandExecutor {
                     "§eMembers: §f" +
                             kingdom.getMembers().size()
             );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("disband")) {
+
+            if (kingdomService.disbandKingdom(
+                    player
+            )) {
+
+                player.sendMessage(
+                        "§aKingdom disbanded."
+                );
+
+            } else {
+
+                player.sendMessage(
+                        "§cOnly the king can disband."
+                );
+            }
 
             return true;
         }
