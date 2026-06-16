@@ -15,9 +15,10 @@ public class StartupManager {
         plugin.getLogger().info("Loading configuration...");
         plugin.getLogger().info("Loading services...");
 
+        ServiceRegistry.initialize();
+
         CommandRegistrar.register(plugin);
 
-        
         plugin.getLogger().info("Startup completed.");
     }
 
