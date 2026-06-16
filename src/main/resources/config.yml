@@ -1,0 +1,9 @@
+server-name: "KingdomsX"
+
+debug: false
+
+claims:
+  max-claims-per-kingdom: 100
+
+database:
+  type: sqlite
