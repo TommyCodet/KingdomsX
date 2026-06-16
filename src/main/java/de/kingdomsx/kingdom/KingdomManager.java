@@ -1,6 +1,9 @@
 package de.kingdomsx.kingdom;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class KingdomManager {
 
@@ -49,8 +52,9 @@ public class KingdomManager {
 
         UUID kingdomId = playerKingdoms.get(player);
 
-        if (kingdomId == null)
+        if (kingdomId == null) {
             return null;
+        }
 
         return kingdoms.get(kingdomId);
     }
@@ -67,11 +71,40 @@ public class KingdomManager {
 
         Kingdom kingdom = kingdoms.remove(kingdomId);
 
-        if (kingdom == null)
+        if (kingdom == null) {
             return;
+        }
 
         for (UUID member : kingdom.getMembers().keySet()) {
             playerKingdoms.remove(member);
         }
+    }
+
+    public void addMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        kingdom.getMembers().put(
+                player,
+                new KingdomMember(
+                        player,
+                        KingdomRole.RECRUIT
+                )
+        );
+
+        playerKingdoms.put(
+                player,
+                kingdom.getId()
+        );
+    }
+
+    public void removeMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        kingdom.getMembers().remove(player);
+        playerKingdoms.remove(player);
     }
 }
