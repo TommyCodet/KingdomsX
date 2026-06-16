@@ -8,7 +8,8 @@ public final class ServiceRegistry {
     private static KingdomManager kingdomManager;
     private static KingdomService kingdomService;
 
-    private ServiceRegistry() {}
+    private ServiceRegistry() {
+    }
 
     public static void initialize() {
 
