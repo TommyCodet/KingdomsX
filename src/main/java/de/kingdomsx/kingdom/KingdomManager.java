@@ -126,12 +126,28 @@ public class KingdomManager {
                         player
                 );
 
+        return member != null
+                && member.getRole() == KingdomRole.KING;
+    }
+
+    public boolean hasRole(
+            Kingdom kingdom,
+            UUID player,
+            KingdomRole role
+    ) {
+
+        KingdomMember member =
+                getMember(
+                        kingdom,
+                        player
+                );
+
         if (member == null) {
             return false;
         }
 
-        return member.getRole() ==
-                KingdomRole.KING;
+        return member.getRole()
+                .isHigherOrEqual(role);
     }
 
     public void kickMember(
@@ -139,12 +155,98 @@ public class KingdomManager {
             UUID player
     ) {
 
-        kingdom.getMembers().remove(
-                player
-        );
+        kingdom.getMembers().remove(player);
 
-        playerKingdoms.remove(
-                player
-        );
+        playerKingdoms.remove(player);
+    }
+
+    public boolean promoteMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        KingdomMember member =
+                getMember(
+                        kingdom,
+                        player
+                );
+
+        if (member == null) {
+            return false;
+        }
+
+        switch (member.getRole()) {
+
+            case RECRUIT ->
+                    member.setRole(
+                            KingdomRole.MEMBER
+                    );
+
+            case MEMBER ->
+                    member.setRole(
+                            KingdomRole.OFFICER
+                    );
+
+            case OFFICER ->
+                    member.setRole(
+                            KingdomRole.GENERAL
+                    );
+
+            case GENERAL ->
+                    member.setRole(
+                            KingdomRole.CO_KING
+                    );
+
+            default -> {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean demoteMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        KingdomMember member =
+                getMember(
+                        kingdom,
+                        player
+                );
+
+        if (member == null) {
+            return false;
+        }
+
+        switch (member.getRole()) {
+
+            case CO_KING ->
+                    member.setRole(
+                            KingdomRole.GENERAL
+                    );
+
+            case GENERAL ->
+                    member.setRole(
+                            KingdomRole.OFFICER
+                    );
+
+            case OFFICER ->
+                    member.setRole(
+                            KingdomRole.MEMBER
+                    );
+
+            case MEMBER ->
+                    member.setRole(
+                            KingdomRole.RECRUIT
+                    );
+
+            default -> {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
