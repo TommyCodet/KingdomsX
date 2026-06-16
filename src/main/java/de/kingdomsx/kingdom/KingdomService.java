@@ -2,6 +2,8 @@ package de.kingdomsx.kingdom;
 
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 public class KingdomService {
 
     private final KingdomManager kingdomManager;
@@ -54,8 +56,9 @@ public class KingdomService {
                         player.getUniqueId()
                 );
 
-        if (kingdom == null)
+        if (kingdom == null) {
             return false;
+        }
 
         if (kingdom.getOwner()
                 .equals(player.getUniqueId())) {
@@ -79,11 +82,14 @@ public class KingdomService {
                         player.getUniqueId()
                 );
 
-        if (kingdom == null)
+        if (kingdom == null) {
             return false;
+        }
 
-        if (!kingdom.getOwner()
-                .equals(player.getUniqueId())) {
+        if (!kingdomManager.isKing(
+                kingdom,
+                player.getUniqueId()
+        )) {
             return false;
         }
 
@@ -92,5 +98,124 @@ public class KingdomService {
         );
 
         return true;
+    }
+
+    public boolean kickPlayer(
+            Player executor,
+            UUID target
+    ) {
+
+        Kingdom kingdom =
+                kingdomManager.getKingdomByPlayer(
+                        executor.getUniqueId()
+                );
+
+        if (kingdom == null) {
+            return false;
+        }
+
+        if (!kingdomManager.hasRole(
+                kingdom,
+                executor.getUniqueId(),
+                KingdomRole.GENERAL
+        )) {
+            return false;
+        }
+
+        if (executor.getUniqueId()
+                .equals(target)) {
+            return false;
+        }
+
+        KingdomMember member =
+                kingdomManager.getMember(
+                        kingdom,
+                        target
+                );
+
+        if (member == null) {
+            return false;
+        }
+
+        if (member.getRole() ==
+                KingdomRole.KING) {
+            return false;
+        }
+
+        kingdomManager.kickMember(
+                kingdom,
+                target
+        );
+
+        return true;
+    }
+
+    public boolean promotePlayer(
+            Player executor,
+            UUID target
+    ) {
+
+        Kingdom kingdom =
+                kingdomManager.getKingdomByPlayer(
+                        executor.getUniqueId()
+                );
+
+        if (kingdom == null) {
+            return false;
+        }
+
+        if (!kingdomManager.isKing(
+                kingdom,
+                executor.getUniqueId()
+        )) {
+            return false;
+        }
+
+        return kingdomManager.promoteMember(
+                kingdom,
+                target
+        );
+    }
+
+    public boolean demotePlayer(
+            Player executor,
+            UUID target
+    ) {
+
+        Kingdom kingdom =
+                kingdomManager.getKingdomByPlayer(
+                        executor.getUniqueId()
+                );
+
+        if (kingdom == null) {
+            return false;
+        }
+
+        if (!kingdomManager.isKing(
+                kingdom,
+                executor.getUniqueId()
+        )) {
+            return false;
+        }
+
+        KingdomMember member =
+                kingdomManager.getMember(
+                        kingdom,
+                        target
+                );
+
+        if (member == null) {
+            return false;
+        }
+
+        if (member.getRole() ==
+                KingdomRole.KING) {
+            return false;
+        }
+
+        return kingdomManager.demoteMember(
+                kingdom,
+                target
+        );
     }
 }
