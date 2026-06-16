@@ -2,6 +2,8 @@ package de.kingdomsx.commands;
 
 import de.kingdomsx.bootstrap.ServiceRegistry;
 import de.kingdomsx.kingdom.Kingdom;
+import de.kingdomsx.kingdom.KingdomMember;
+import de.kingdomsx.kingdom.KingdomRole;
 import de.kingdomsx.kingdom.KingdomService;
 import de.kingdomsx.kingdom.invite.InviteManager;
 import org.bukkit.Bukkit;
@@ -40,6 +42,9 @@ public class KingdomCommand implements CommandExecutor {
             player.sendMessage("§e/k members");
             player.sendMessage("§e/k info");
             player.sendMessage("§e/k disband");
+            player.sendMessage("§e/k kick <player>");
+            player.sendMessage("§e/k promote <player>");
+            player.sendMessage("§e/k demote <player>");
 
             return true;
         }
@@ -47,9 +52,7 @@ public class KingdomCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("create")) {
 
             if (args.length < 2) {
-                player.sendMessage(
-                        "§cUsage: /k create <name>"
-                );
+                player.sendMessage("§cUsage: /k create <name>");
                 return true;
             }
 
@@ -75,9 +78,6 @@ public class KingdomCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("invite")) {
 
             if (args.length < 2) {
-                player.sendMessage(
-                        "§cUsage: /k invite <player>"
-                );
                 return true;
             }
 
@@ -89,9 +89,22 @@ public class KingdomCommand implements CommandExecutor {
                             );
 
             if (kingdom == null) {
+                player.sendMessage("§cNo kingdom.");
+                return true;
+            }
+
+            KingdomMember self =
+                    kingdom.getMember(
+                            player.getUniqueId()
+                    );
+
+            if (self == null ||
+                    !self.getRole().isHigherOrEqual(
+                            KingdomRole.OFFICER
+                    )) {
 
                 player.sendMessage(
-                        "§cYou are not in a kingdom."
+                        "§cOfficer required."
                 );
 
                 return true;
@@ -101,11 +114,9 @@ public class KingdomCommand implements CommandExecutor {
                     Bukkit.getPlayer(args[1]);
 
             if (target == null) {
-
                 player.sendMessage(
                         "§cPlayer not found."
                 );
-
                 return true;
             }
 
@@ -114,13 +125,13 @@ public class KingdomCommand implements CommandExecutor {
                     kingdom.getId()
             );
 
+            player.sendMessage(
+                    "§aInvite sent."
+            );
+
             target.sendMessage(
                     "§eYou were invited to §6"
                             + kingdom.getName()
-            );
-
-            player.sendMessage(
-                    "§aInvite sent."
             );
 
             return true;
@@ -175,20 +186,106 @@ public class KingdomCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("leave")) {
 
-            if (kingdomService.leaveKingdom(
-                    player
-            )) {
+            player.sendMessage(
+                    kingdomService.leaveKingdom(player)
+                            ? "§aYou left the kingdom."
+                            : "§cUnable to leave."
+            );
 
-                player.sendMessage(
-                        "§aYou left the kingdom."
-                );
+            return true;
+        }
 
-            } else {
+        if (args[0].equalsIgnoreCase("disband")) {
 
-                player.sendMessage(
-                        "§cUnable to leave."
-                );
+            player.sendMessage(
+                    kingdomService.disbandKingdom(player)
+                            ? "§aKingdom disbanded."
+                            : "§cOnly the king can disband."
+            );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("kick")) {
+
+            if (args.length < 2) {
+                return true;
             }
+
+            Player target =
+                    Bukkit.getPlayer(args[1]);
+
+            if (target == null) {
+                player.sendMessage(
+                        "§cPlayer not found."
+                );
+                return true;
+            }
+
+            player.sendMessage(
+                    kingdomService.kickPlayer(
+                            player,
+                            target.getUniqueId()
+                    )
+                            ? "§aPlayer kicked."
+                            : "§cUnable to kick player."
+            );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("promote")) {
+
+            if (args.length < 2) {
+                return true;
+            }
+
+            Player target =
+                    Bukkit.getPlayer(args[1]);
+
+            if (target == null) {
+                player.sendMessage(
+                        "§cPlayer not found."
+                );
+                return true;
+            }
+
+            player.sendMessage(
+                    kingdomService.promotePlayer(
+                            player,
+                            target.getUniqueId()
+                    )
+                            ? "§aPlayer promoted."
+                            : "§cUnable to promote."
+            );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("demote")) {
+
+            if (args.length < 2) {
+                return true;
+            }
+
+            Player target =
+                    Bukkit.getPlayer(args[1]);
+
+            if (target == null) {
+                player.sendMessage(
+                        "§cPlayer not found."
+                );
+                return true;
+            }
+
+            player.sendMessage(
+                    kingdomService.demotePlayer(
+                            player,
+                            target.getUniqueId()
+                    )
+                            ? "§aPlayer demoted."
+                            : "§cUnable to demote."
+            );
 
             return true;
         }
@@ -203,11 +300,7 @@ public class KingdomCommand implements CommandExecutor {
                             );
 
             if (kingdom == null) {
-
-                player.sendMessage(
-                        "§cNo kingdom."
-                );
-
+                player.sendMessage("§cNo kingdom.");
                 return true;
             }
 
@@ -219,8 +312,10 @@ public class KingdomCommand implements CommandExecutor {
                     .values()
                     .forEach(member ->
                             player.sendMessage(
-                                    "§e" +
-                                    member.getUniqueId()
+                                    "§7" +
+                                    member.getUniqueId() +
+                                    " §8- §e" +
+                                    member.getRole()
                             ));
 
             return true;
@@ -236,47 +331,19 @@ public class KingdomCommand implements CommandExecutor {
                             );
 
             if (kingdom == null) {
-
-                player.sendMessage(
-                        "§cNo kingdom."
-                );
-
+                player.sendMessage("§cNo kingdom.");
                 return true;
             }
 
-            player.sendMessage(
-                    "§6=== Kingdom ==="
-            );
-
+            player.sendMessage("§6=== Kingdom ===");
             player.sendMessage(
                     "§eName: §f" +
                             kingdom.getName()
             );
-
             player.sendMessage(
                     "§eMembers: §f" +
                             kingdom.getMembers().size()
             );
-
-            return true;
-        }
-
-        if (args[0].equalsIgnoreCase("disband")) {
-
-            if (kingdomService.disbandKingdom(
-                    player
-            )) {
-
-                player.sendMessage(
-                        "§aKingdom disbanded."
-                );
-
-            } else {
-
-                player.sendMessage(
-                        "§cOnly the king can disband."
-                );
-            }
 
             return true;
         }
