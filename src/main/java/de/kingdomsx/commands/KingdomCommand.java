@@ -3,6 +3,8 @@ package de.kingdomsx.commands;
 import de.kingdomsx.bootstrap.ServiceRegistry;
 import de.kingdomsx.kingdom.Kingdom;
 import de.kingdomsx.kingdom.KingdomService;
+import de.kingdomsx.kingdom.invite.InviteManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +15,9 @@ public class KingdomCommand implements CommandExecutor {
     private final KingdomService kingdomService =
             ServiceRegistry.getKingdomService();
 
+    private final InviteManager inviteManager =
+            ServiceRegistry.getInviteManager();
+
     @Override
     public boolean onCommand(
             CommandSender sender,
@@ -21,15 +26,16 @@ public class KingdomCommand implements CommandExecutor {
             String[] args
     ) {
 
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players can use this command.");
+        if (!(sender instanceof Player player))
             return true;
-        }
 
         if (args.length == 0) {
 
             player.sendMessage("§6KingdomsX");
             player.sendMessage("§e/k create <name>");
+            player.sendMessage("§e/k invite <player>");
+            player.sendMessage("§e/k join");
+            player.sendMessage("§e/k leave");
             player.sendMessage("§e/k info");
 
             return true;
@@ -42,18 +48,130 @@ public class KingdomCommand implements CommandExecutor {
                 return true;
             }
 
-            String name = args[1];
-
-            if (kingdomService.createKingdom(player, name)) {
+            if (kingdomService.createKingdom(
+                    player,
+                    args[1]
+            )) {
 
                 player.sendMessage(
-                        "§aKingdom created: §e" + name
+                        "§aKingdom created."
                 );
 
             } else {
 
                 player.sendMessage(
-                        "§cYou are already in a kingdom."
+                        "§cCould not create kingdom."
+                );
+            }
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("invite")) {
+
+            if (args.length < 2)
+                return true;
+
+            Kingdom kingdom =
+                    ServiceRegistry
+                            .getKingdomManager()
+                            .getKingdomByPlayer(
+                                    player.getUniqueId()
+                            );
+
+            if (kingdom == null) {
+                player.sendMessage(
+                        "§cYou are not in a kingdom."
+                );
+                return true;
+            }
+
+            Player target =
+                    Bukkit.getPlayer(args[1]);
+
+            if (target == null) {
+                player.sendMessage(
+                        "§cPlayer not found."
+                );
+                return true;
+            }
+
+            inviteManager.invite(
+                    target.getUniqueId(),
+                    kingdom.getId()
+            );
+
+            target.sendMessage(
+                    "§eYou were invited."
+            );
+
+            player.sendMessage(
+                    "§aInvite sent."
+            );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("join")) {
+
+            if (!inviteManager.hasInvite(
+                    player.getUniqueId()
+            )) {
+
+                player.sendMessage(
+                        "§cNo invite found."
+                );
+
+                return true;
+            }
+
+            var invite =
+                    inviteManager.getInvite(
+                            player.getUniqueId()
+                    );
+
+            Kingdom kingdom =
+                    ServiceRegistry
+                            .getKingdomManager()
+                            .getKingdom(
+                                    invite.getKingdomId()
+                            );
+
+            if (kingdom == null)
+                return true;
+
+            ServiceRegistry
+                    .getKingdomManager()
+                    .addMember(
+                            kingdom,
+                            player.getUniqueId()
+                    );
+
+            inviteManager.removeInvite(
+                    player.getUniqueId()
+            );
+
+            player.sendMessage(
+                    "§aJoined kingdom."
+            );
+
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("leave")) {
+
+            if (kingdomService.leaveKingdom(
+                    player
+            )) {
+
+                player.sendMessage(
+                        "§aYou left the kingdom."
+                );
+
+            } else {
+
+                player.sendMessage(
+                        "§cUnable to leave."
                 );
             }
 
@@ -63,7 +181,8 @@ public class KingdomCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("info")) {
 
             Kingdom kingdom =
-                    ServiceRegistry.getKingdomManager()
+                    ServiceRegistry
+                            .getKingdomManager()
                             .getKingdomByPlayer(
                                     player.getUniqueId()
                             );
@@ -71,15 +190,25 @@ public class KingdomCommand implements CommandExecutor {
             if (kingdom == null) {
 
                 player.sendMessage(
-                        "§cYou are not in a kingdom."
+                        "§cNo kingdom."
                 );
 
                 return true;
             }
 
-            player.sendMessage("§6=== Kingdom Info ===");
-            player.sendMessage("§eName: §f" + kingdom.getName());
-            player.sendMessage("§eMembers: §f" + kingdom.getMembers().size());
+            player.sendMessage(
+                    "§6=== Kingdom ==="
+            );
+
+            player.sendMessage(
+                    "§eName: §f" +
+                            kingdom.getName()
+            );
+
+            player.sendMessage(
+                    "§eMembers: §f" +
+                            kingdom.getMembers().size()
+            );
 
             return true;
         }
