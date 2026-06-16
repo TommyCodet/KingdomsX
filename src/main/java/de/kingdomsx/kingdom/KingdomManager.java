@@ -107,4 +107,44 @@ public class KingdomManager {
         kingdom.getMembers().remove(player);
         playerKingdoms.remove(player);
     }
+
+    public KingdomMember getMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+        return kingdom.getMembers().get(player);
+    }
+
+    public boolean isKing(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        KingdomMember member =
+                getMember(
+                        kingdom,
+                        player
+                );
+
+        if (member == null) {
+            return false;
+        }
+
+        return member.getRole() ==
+                KingdomRole.KING;
+    }
+
+    public void kickMember(
+            Kingdom kingdom,
+            UUID player
+    ) {
+
+        kingdom.getMembers().remove(
+                player
+        );
+
+        playerKingdoms.remove(
+                player
+        );
+    }
 }
