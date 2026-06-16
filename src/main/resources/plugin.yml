@@ -1,0 +1,16 @@
+name: KingdomsX
+version: 1.0.0
+main: de.kingdomsx.KingdomsX
+api-version: '1.21'
+
+author: KingdomsX Team
+
+commands:
+  kingdom:
+    aliases:
+      - k
+    description: Main kingdom command
+
+permissions:
+  kingdomsx.admin:
+    default: op
