@@ -28,6 +28,15 @@ public class KingdomService {
             return false;
         }
 
+        for (Kingdom kingdom :
+                kingdomManager.getKingdoms()) {
+
+            if (kingdom.getName()
+                    .equalsIgnoreCase(name)) {
+                return false;
+            }
+        }
+
         kingdomManager.createKingdom(
                 player.getUniqueId(),
                 name
@@ -56,6 +65,30 @@ public class KingdomService {
         kingdomManager.removeMember(
                 kingdom,
                 player.getUniqueId()
+        );
+
+        return true;
+    }
+
+    public boolean disbandKingdom(
+            Player player
+    ) {
+
+        Kingdom kingdom =
+                kingdomManager.getKingdomByPlayer(
+                        player.getUniqueId()
+                );
+
+        if (kingdom == null)
+            return false;
+
+        if (!kingdom.getOwner()
+                .equals(player.getUniqueId())) {
+            return false;
+        }
+
+        kingdomManager.deleteKingdom(
+                kingdom.getId()
         );
 
         return true;
